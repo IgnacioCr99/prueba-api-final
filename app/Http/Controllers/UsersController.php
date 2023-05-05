@@ -9,8 +9,10 @@ use App\Http\Requests\StoreUserRequest;
 
 class UsersController extends Controller
 {
+    // Metodo obtener usuario
     public function getUsers(Request $request)
 {
+    try{
     $client = new \GuzzleHttp\Client([
         'base_uri' => config('services.gorest.base_uri'),
         'headers' => [
@@ -26,6 +28,7 @@ class UsersController extends Controller
 
     $formattedUsers = array_map(function ($user) {
         return [
+            'id' => $user->id,
             'nombre' => $user->name,
             'email' => $user->email,
             'genero' => $user->gender,
@@ -34,12 +37,20 @@ class UsersController extends Controller
     }, $users);
 
     return response()->json($formattedUsers);
+    //manejo de errores
+      } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'Error al editar usuario',
+            'error' => $e->getMessage()
+        ], 500);
+    }
 }
 
 
 
 public function postUsers(Request $request)
 {
+    try{
     $client = new Client([
         'base_uri' => 'https://gorest.co.in/public-api/',
         'headers' => [
@@ -70,10 +81,18 @@ public function postUsers(Request $request)
         'message' => 'Usuario creado correctamente',
         'data' => $formatted_usuario,
     ], 201);
+    //manejo de errores
+        } catch (\Exception $e) {
+         return response()->json([
+        'message' => 'Error al editar usuario',
+        'error' => $e->getMessage()
+    ], 500);
 }
-
+}
+//metodo PUT usuarios, este metodo recive como parametro el id del usuario en la ruta /usuarios/{id del usuario} 
 public function putUsers(Request $request, $id)
 {
+    try{
     $client = new Client([
         'base_uri' => 'https://gorest.co.in/public-api/',
         'headers' => [
@@ -99,48 +118,64 @@ public function putUsers(Request $request, $id)
         'message' => 'Usuario editado correctamente',
         'data' => $usuario,
     ]);
+    } //manejo de errores
+        catch (\Exception $e) {
+        return response()->json([
+        'message' => 'Error al editar usuario',
+        'error' => $e->getMessage()
+        ], 500);
 }
-
+}
+//metodo PATCH usuarios, este metodo recive el email del usuario como parametro ?id=id
+//metodo devuelve el usuario mas no actualiza*
 public function patchByEmail(Request $request)
 {
-    $email = $request->query('email');
+    try {
+        $email = $request->query('email');
 
-    $client = new Client([
-        'base_uri' => 'https://gorest.co.in/public-api/',
-        'headers' => [
-            'Authorization' => 'Bearer ' . env('GOREST_API_TOKEN'),
-            'Accept' => 'application/json',
-        ],
-    ]);
+        $client = new Client([
+            'base_uri' => 'https://gorest.co.in/public-api/',
+            'headers' => [
+                'Authorization' => 'Bearer ' . env('GOREST_API_TOKEN'),
+                'Accept' => 'application/json',
+            ],
+        ]);
 
-    $response = $client->get('users', [
-        'query' => ['email' => $email],
-    ]);
+        $response = $client->get('users', [
+            'query' => ['email' => $email],
+        ]);
 
-    $usuario = json_decode($response->getBody(), true)['data'][0];
+        $usuario = json_decode($response->getBody(), true)['data'][0];
 
-    $data = [
-        'name' => $request->input('nombre'),
-        'email' => $request->input('email'),
-        'gender' => $request->input('genero'),
-        'status' => $request->input('activo') ? 'active' : 'inactive',
-    ];
+        $data = [
+            'name' => $request->input('nombre'),
+            'email' => $request->input('email'),
+            'gender' => $request->input('genero'),
+            'status' => $request->input('activo') ? 'active' : 'inactive',
+        ];
 
-    $response = $client->patch('users/' . $usuario['id'], [
-        'json' => $data,
-    ]);
+        $response = $client->patch('users/' . $usuario['id'], [
+            'json' => $data,
+        ]);
 
-    $usuarioActualizado = [
-        'nombre' => $usuario['name'],
-        'email' => $usuario['email'],
-        'genero' => $usuario['gender'],
-        'activo' => $usuario['status'] == 'active',
-    ];
+        $usuarioActualizado = [
+            'nombre' => $usuario['name'],
+            'email' => $usuario['email'],
+            'genero' => $usuario['gender'],
+            'activo' => $usuario['status'] == 'active',
+        ];
 
-    return response()->json([
-        'message' => 'Usuario actualizado correctamente',
-        'data' => $usuarioActualizado,
-    ]);
+        return response()->json([
+            'message' => 'Usuario actualizado correctamente',
+            'data' => $usuarioActualizado,
+        ]);
+    } catch (\Throwable $th) {
+        // Manejo de errores
+        return response()->json([
+            'message' => 'Error al actualizar el usuario',
+            'error' => $th->getMessage(),
+        ], 500);
+    }
 }
 
 
