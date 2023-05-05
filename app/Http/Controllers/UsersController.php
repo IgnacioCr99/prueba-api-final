@@ -9,23 +9,34 @@ use App\Http\Requests\StoreUserRequest;
 
 class UsersController extends Controller
 {
-    public function index()
+    public function getUsuarios()
+    {
+        $client = new \GuzzleHttp\Client([
+            'base_uri' => config('services.gorest.base_uri'),
+            'headers' => [
+                'Authorization' => 'Bearer '.config('services.gorest.token'),
+            ],
+        ]);
+
+        $response = $client->get('public-api/users');
+        $users = json_decode($response->getBody())->data;
+
+        $formattedUsers = array_map(function ($user) {
+            return [
+                'nombre' => $user->name,
+                'email' => $user->email,
+                'genero' => $user->gender,
+                'activo' => $user->status === 'active',
+            ];
+        }, $users);
+
+        return response()->json($formattedUsers);
+    }
+
+
+public function getByName(Request $request)
 {
-    $client = new \GuzzleHttp\Client([
-        'base_uri' => config('services.gorest.base_uri'),
-        'headers' => [
-            'Authorization' => 'Bearer '.config('services.gorest.token'),
-        ],
-    ]);
-
-    $response = $client->get('public-api/users');
-    $users = json_decode($response->getBody());
-
-    return response()->json($users);
-}
-
-public function getByName($nombre)
-{
+    $nombre = $request->query('nombre');
     $client = new \GuzzleHttp\Client([
         'base_uri' => config('services.gorest.base_uri'),
         'headers' => [
@@ -53,8 +64,10 @@ public function getByName($nombre)
     return response()->json($result);
 }
 
-public function getByEmail($email)
+public function getByEmail(Request $request)
 {
+    $email = $request->input('email');
+
     $client = new \GuzzleHttp\Client([
         'base_uri' => config('services.gorest.base_uri'),
         'headers' => [
@@ -81,8 +94,11 @@ public function getByEmail($email)
     return response()->json($formattedUsers);
 }
 
-public function getByStatus($status)
+
+public function getByStatus(Request $request)
 {
+    $status = $request->input('status');
+
     $client = new \GuzzleHttp\Client([
         'base_uri' => config('services.gorest.base_uri'),
         'headers' => [

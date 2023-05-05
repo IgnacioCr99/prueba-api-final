@@ -19,10 +19,10 @@ use App\Http\Controllers\UsersController;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-Route::get('/usuarios', [UsersController::class, 'index']);
-Route::get('/usuarios/{nombre}', [UsersController::class, 'getByName']);
-Route::get('/usuarios/email/{email}', [UsersController::class, 'getByEmail']);
-Route::get('/usuarios/status/{status}',[UsersController::class,'getByStatus']);
+Route::get('/usuarios', [UsersController::class, 'getUsuarios']);
+Route::get('/usuarios', [UsersController::class, 'getByName']);
+Route::get('/usuarios', [UsersController::class, 'getByEmail']);
+Route::get('/usuarios',[UsersController::class,'getByStatus']);
 Route::post('/usuarios',[UsersController::class,'postUsers']);
 Route::put('/usuarios/{id}',[UsersController::class,'putUsers']);
 Route::patch('/usuarios',[UsersController::class,'patchByEmail']);
