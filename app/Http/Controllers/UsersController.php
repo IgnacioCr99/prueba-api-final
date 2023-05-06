@@ -127,7 +127,7 @@ public function putUsers(Request $request, $id)
 }
 }
 //metodo PATCH usuarios, este metodo recive el email del usuario como parametro ?id=id
-//metodo devuelve el usuario mas no actualiza*
+//se implemeta validacion en cada campo de la peticion
 public function patchByEmail(Request $request)
 {
     try {
@@ -147,12 +147,23 @@ public function patchByEmail(Request $request)
 
         $usuario = json_decode($response->getBody(), true)['data'][0];
 
-        $data = [
-            'name' => $request->input('nombre'),
-            'email' => $request->input('email'),
-            'gender' => $request->input('genero'),
-            'status' => $request->input('activo') ? 'active' : 'inactive',
-        ];
+        $data = [];
+
+        if ($request->has('name')) {
+            $data['name'] = $request->input('name');
+        }
+
+        if ($request->has('email')) {
+            $data['email'] = $request->input('email');
+        }
+
+        if ($request->has('gender')) {
+            $data['gender'] = $request->input('gender');
+        }
+
+        if ($request->has('status')) {
+            $data['status'] = $request->input('status') ? 'active' : 'inactive';
+        }
 
         $response = $client->patch('users/' . $usuario['id'], [
             'json' => $data,
@@ -177,6 +188,8 @@ public function patchByEmail(Request $request)
         ], 500);
     }
 }
+
+
 
 
 
